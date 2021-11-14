@@ -21,10 +21,11 @@ def seed_torch(seed=1234):
 seed_torch()
 
 model_path = 'pretrained_model/bert-base-chinese'
-candidates_path = 'LeCaRD/data/candidates/candidates'
+candidates_path = 'LeCaRD/data/candidates'
 query_path = 'LeCaRD/data/query/query.json'
 golden_label_path = 'LeCaRD/data/label/golden_labels.json'
 best_model_name = 'best_model'
+pooling = 'mean'
 
 hidden_size = 768
 # 以下两个参数不建议修改，大了可能会爆显存
@@ -34,7 +35,7 @@ para_max_len = 255
 max_len = 512
 
 epoch = 20
-batch_size = 8
+batch_size = 4
 learning_rate = 2e-5
 
 gradient_accumulation_steps = 10
@@ -81,7 +82,7 @@ def evaluate():
                 'attention_mask': attention_mask,
                 'token_type_ids': token_type_ids
             }
-            score, loss = model(data, label, 'eval')
+            score, loss = model(data=data, label=label, mode='eval', pooling=pooling)
 
             _, max_idx = torch.max(score, dim=1)
 
@@ -120,7 +121,7 @@ def train():
                 'attention_mask': attention_mask,
                 'token_type_ids': token_type_ids
             }
-            loss = model(data, label)
+            loss = model(data=data, label=label, mode='train', pooling=pooling)
             loss = loss.mean()
             loss.backward()
             optimizer.step()

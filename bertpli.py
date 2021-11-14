@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 from transformers import BertModel
 from transformers import BertConfig
 from rnn_attention import RNNAttention
@@ -20,20 +21,26 @@ class BertPli(nn.Module):
         # stage 3
         self.attn = RNNAttention(max_para_d=self.max_para_d)
 
-    def forward(self, data, label, mode='train'):  # 一个batch数据
+    def forward(self, data, label, mode='train', pooling='cls'):  # 一个batch数据
         input_ids, attention_mask, token_type_ids = data['input_ids'], data['attention_mask'], data['token_type_ids']
 
-        _, cls = self.bert(input_ids=input_ids.view(-1, self.max_len),  # [b * max_para_q * max_para_d, max len]
+        # cls : [b * max_para_q * max_para_d, h]
+        # last_hidden_state : [b * max_para_q * max_para_d, max len, h]
+        last_hidden_state, cls = self.bert(input_ids=input_ids.view(-1, self.max_len),  # [b * max_para_q * max_para_d, max len]
                                             attention_mask=attention_mask.view(-1, self.max_len),  # [b * max_para_q * max_para_d, max len]
                                             token_type_ids=token_type_ids.view(-1, self.max_len))  # [b * max_para_q * max_para_d, max len]
 
-        # cls :[b * max_para_q * max_para_d, max len]
-        cls = cls.view(self.max_para_q, self.max_para_d, -1)  # [max_para_q, max_para_d, h]
+        if pooling == 'cls':
+            feature = cls
+        else:
+            feature = torch.mean(last_hidden_state, dim=1)
 
-        cls = cls.permute(2, 1, 0)  # [h, max_para_d, max_para_q]
+        feature = feature.view(self.max_para_q, self.max_para_d, -1)  # [max_para_q, max_para_d, h]
 
-        cls = cls.unsqueeze(0)  # [1, h, max_para_d, max_para_q]
-        max_out = self.maxpool(cls)  # [1, h, max_para_d, 1]
+        feature = feature.permute(2, 1, 0)  # [h, max_para_d, max_para_q]
+
+        feature = feature.unsqueeze(0)  # [1, h, max_para_d, max_para_q]
+        max_out = self.maxpool(feature)  # [1, h, max_para_d, 1]
         max_out = max_out.squeeze()  # [h, max_para_d]
         max_out = max_out.transpose(0, 1)  # [max_para_d, h]
         max_out = max_out.unsqueeze(0)

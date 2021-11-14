@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="wenjiabao@10.10.1.86:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="jbwen@10.10.1.164:22 password">
         <serverdata>
@@ -19,7 +19,7 @@
       <paths name="wenjiabao@10.10.1.86:22 password">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/data0/wenjiabao/BERT-PLI" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
@@ -31,5 +31,6 @@
         </serverdata>
       </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>
